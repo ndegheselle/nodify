@@ -799,6 +799,7 @@ namespace Nodify
                 return selectedContainers;
             }
         }
+
         #endregion
 
         #region Construction
@@ -1502,6 +1503,8 @@ namespace Nodify
         /// </summary>
         protected internal void StartCutting(Point location)
         {
+            if (IsReadOnly)
+                return;
 
             CuttingLineStart = location;
             CuttingLineEnd = location;

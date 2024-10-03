@@ -21,55 +21,33 @@ namespace Nodify.Playground
             DisconnectConnectorCommand = new RequeryCommand<ConnectorViewModel>(DisconnectConnector);
             CreateConnectionCommand = new DelegateCommand<object>(CreateConnection, CanCreateConnection);
 
-            Connections.CollectionChanged += (s, e) =>
+            Connections.WhenAdded(c =>
             {
-                if (e.Action == NotifyCollectionChangedAction.Add)
-                {
-                    foreach (ConnectionViewModel c in e.NewItems)
-                    {
-                        c.Graph = this;
-                        c.Input.Connections.Add(c);
-                        c.Output.Connections.Add(c);
-                    }
-                }
-                else if (e.Action == NotifyCollectionChangedAction.Remove)
-                {
-                    foreach (ConnectionViewModel c in e.OldItems)
-                    {
-                        c.Input.Connections.Remove(c);
-                        c.Output.Connections.Remove(c);
-                    }
-                }
-            };
+                c.Graph = this;
+                c.Input.Connections.Add(c);
+                c.Output.Connections.Add(c);
+            })
+            // Called when the collection is cleared
+            .WhenRemoved(c =>
+            {
+                c.Input.Connections.Remove(c);
+                c.Output.Connections.Remove(c);
+            });
 
-            Nodes.CollectionChanged += (s, e) =>
-            {
-                if (e.Action == NotifyCollectionChangedAction.Add)
-                {
-                    foreach (NodeViewModel x in e.NewItems)
-                    {
-                        x.Graph = this;
-                    }
-                }
-                else if (e.Action == NotifyCollectionChangedAction.Remove)
-                {
-                    foreach (NodeViewModel x in e.OldItems)
-                    {
-                        if (x is FlowNodeViewModel flow)
-                        {
-                            flow.Disconnect();
-                        }
-                        else if (x is KnotNodeViewModel knot)
-                        {
-                            knot.Connector.Disconnect();
-                        }
-                    }
-                }
-                else if (e.Action == NotifyCollectionChangedAction.Reset)
-                {
-                    Connections.Clear();
-                }
-            };
+            Nodes.WhenAdded(x => x.Graph = this)
+                 // Not called when the collection is cleared
+                 .WhenRemoved(x =>
+                 {
+                     if (x is FlowNodeViewModel flow)
+                     {
+                         flow.Disconnect();
+                     }
+                     else if (x is KnotNodeViewModel knot)
+                     {
+                         knot.Connector.Disconnect();
+                     }
+                 })
+                 .WhenCleared(x => Connections.Clear());
         }
 
         private NodifyObservableCollection<NodeViewModel> _nodes = new NodifyObservableCollection<NodeViewModel>();

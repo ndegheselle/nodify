@@ -62,7 +62,7 @@ namespace Nodify
         {
             Editor.CuttingLineEnd = Editor.MouseLocation;
 
-            if (NodifyEditor.EnableCuttingLinePreview)
+            if (NodifyEditor.EnableCuttingLinePreview && !Editor.IsReadOnly)
             {
                 ResetConnectionStyle();
 

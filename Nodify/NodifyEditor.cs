@@ -502,6 +502,7 @@ namespace Nodify
         public static readonly DependencyProperty DisablePanningProperty = DependencyProperty.Register(nameof(DisablePanning), typeof(bool), typeof(NodifyEditor), new FrameworkPropertyMetadata(BoxValue.False, OnDisablePanningChanged));
         public static readonly DependencyProperty EnableRealtimeSelectionProperty = DependencyProperty.Register(nameof(EnableRealtimeSelection), typeof(bool), typeof(NodifyEditor), new FrameworkPropertyMetadata(BoxValue.False));
         public static readonly DependencyProperty DecoratorsProperty = DependencyProperty.Register(nameof(Decorators), typeof(IEnumerable), typeof(NodifyEditor));
+        public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register(nameof(IsReadOnly), typeof(bool), typeof(NodifyEditor));
 
         private static void OnSelectedItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
             => ((NodifyEditor)d).OnSelectedItemsSourceChanged((IList)e.OldValue, (IList)e.NewValue);
@@ -588,6 +589,12 @@ namespace Nodify
         {
             get => (bool)GetValue(EnableRealtimeSelectionProperty);
             set => SetValue(EnableRealtimeSelectionProperty, value);
+        }
+
+        public bool IsReadOnly
+        {
+            get => (bool)GetValue(IsReadOnlyProperty);
+            set => SetValue(IsReadOnlyProperty, value);
         }
 
         #endregion
@@ -792,7 +799,6 @@ namespace Nodify
                 return selectedContainers;
             }
         }
-
         #endregion
 
         #region Construction
@@ -1028,6 +1034,12 @@ namespace Nodify
 
         private void OnConnectorDisconnected(object sender, ConnectorEventArgs e)
         {
+            if (IsReadOnly)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (!e.Handled && (DisconnectConnectorCommand?.CanExecute(e.Connector) ?? false))
             {
                 DisconnectConnectorCommand.Execute(e.Connector);
@@ -1037,6 +1049,12 @@ namespace Nodify
 
         private void OnConnectionStarted(object sender, PendingConnectionEventArgs e)
         {
+            if (IsReadOnly)
+            {
+                e.Handled = true;
+                return;
+            }
+
             if (!e.Canceled && ConnectionStartedCommand != null)
             {
                 e.Canceled = !ConnectionStartedCommand.CanExecute(e.SourceConnector);
@@ -1061,6 +1079,12 @@ namespace Nodify
 
         private void OnRemoveConnection(object sender, ConnectionEventArgs e)
         {
+            if (IsReadOnly)
+            {
+                e.Handled = true;
+                return;
+            }
+
             OnRemoveConnection(e.Connection);
         }
         
@@ -1439,6 +1463,12 @@ namespace Nodify
 
         private void OnItemsDragStarted(object sender, DragStartedEventArgs e)
         {
+            if (IsReadOnly)
+            {
+                e.Handled = true;
+                return;
+            }
+
             IList selectedItems = base.SelectedItems;
 
             if (EnableDraggingContainersOptimizations)
@@ -1472,6 +1502,7 @@ namespace Nodify
         /// </summary>
         protected internal void StartCutting(Point location)
         {
+
             CuttingLineStart = location;
             CuttingLineEnd = location;
             IsCutting = true;

@@ -225,6 +225,7 @@
                              AutoPanSpeed="{Binding AutoPanningSpeed, Source={x:Static local:EditorSettings.Instance}}"
                              AutoPanEdgeDistance="{Binding AutoPanningEdgeDistance, Source={x:Static local:EditorSettings.Instance}}"
                              GridCellSize="{Binding GridSpacing, Source={x:Static local:EditorSettings.Instance}}"
+                             IsReadOnly="{Binding IsReadOnly, Source={x:Static local:EditorSettings.Instance}}"
                              EnableRealtimeSelection="{Binding EnableRealtimeSelection, Source={x:Static local:EditorSettings.Instance}}"
                              DisableAutoPanning="{Binding DisableAutoPanning, Source={x:Static local:EditorSettings.Instance}}"
                              DisablePanning="{Binding DisablePanning, Source={x:Static local:EditorSettings.Instance}}"

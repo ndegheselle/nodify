@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Specialized;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -9,44 +10,66 @@ namespace Nodify.Playground
         public NodifyEditorViewModel()
         {
             Schema = new GraphSchema();
-            
+
             PendingConnection = new PendingConnectionViewModel
             {
                 Graph = this
             };
 
-            DeleteSelectionCommand = new DelegateCommand(DeleteSelection, () => SelectedNodes.Count > 0);
-            CommentSelectionCommand = new RequeryCommand(() => Schema.AddCommentAroundNodes(SelectedNodes, "New comment"), () => SelectedNodes.Count > 0);
-            DisconnectConnectorCommand = new DelegateCommand<ConnectorViewModel>(c => c.Disconnect());
-            CreateConnectionCommand = new DelegateCommand<object>(target => Schema.TryAddConnection(PendingConnection.Source!, target), target => PendingConnection.Source != null && target != null);
+            DeleteSelectionCommand = new DelegateCommand(DeleteSelection, CanDeleteSelection);
+            CommentSelectionCommand = new DelegateCommand(CommentSelection, CanCommentSelection);
+            DisconnectConnectorCommand = new RequeryCommand<ConnectorViewModel>(DisconnectConnector);
+            CreateConnectionCommand = new DelegateCommand<object>(CreateConnection, CanCreateConnection);
 
-            Connections.WhenAdded(c =>
+            Connections.CollectionChanged += (s, e) =>
             {
-                c.Graph = this;
-                c.Input.Connections.Add(c);
-                c.Output.Connections.Add(c);
-            })
-            // Called when the collection is cleared
-            .WhenRemoved(c =>
-            {
-                c.Input.Connections.Remove(c);
-                c.Output.Connections.Remove(c);
-            });
+                if (e.Action == NotifyCollectionChangedAction.Add)
+                {
+                    foreach (ConnectionViewModel c in e.NewItems)
+                    {
+                        c.Graph = this;
+                        c.Input.Connections.Add(c);
+                        c.Output.Connections.Add(c);
+                    }
+                }
+                else if (e.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    foreach (ConnectionViewModel c in e.OldItems)
+                    {
+                        c.Input.Connections.Remove(c);
+                        c.Output.Connections.Remove(c);
+                    }
+                }
+            };
 
-            Nodes.WhenAdded(x => x.Graph = this)
-                 // Not called when the collection is cleared
-                 .WhenRemoved(x =>
-                 {
-                     if (x is FlowNodeViewModel flow)
-                     {
-                         flow.Disconnect();
-                     }
-                     else if (x is KnotNodeViewModel knot)
-                     {
-                         knot.Connector.Disconnect();
-                     }
-                 })
-                 .WhenCleared(x => Connections.Clear());
+            Nodes.CollectionChanged += (s, e) =>
+            {
+                if (e.Action == NotifyCollectionChangedAction.Add)
+                {
+                    foreach (NodeViewModel x in e.NewItems)
+                    {
+                        x.Graph = this;
+                    }
+                }
+                else if (e.Action == NotifyCollectionChangedAction.Remove)
+                {
+                    foreach (NodeViewModel x in e.OldItems)
+                    {
+                        if (x is FlowNodeViewModel flow)
+                        {
+                            flow.Disconnect();
+                        }
+                        else if (x is KnotNodeViewModel knot)
+                        {
+                            knot.Connector.Disconnect();
+                        }
+                    }
+                }
+                else if (e.Action == NotifyCollectionChangedAction.Reset)
+                {
+                    Connections.Clear();
+                }
+            };
         }
 
         private NodifyObservableCollection<NodeViewModel> _nodes = new NodifyObservableCollection<NodeViewModel>();
@@ -85,6 +108,11 @@ namespace Nodify.Playground
         public ICommand CreateConnectionCommand { get; }
         public ICommand CommentSelectionCommand { get; }
 
+        private bool CanDeleteSelection()
+        {
+            return !EditorSettings.Instance.IsReadOnly && SelectedNodes.Count > 0;
+        }
+
         private void DeleteSelection()
         {
             var selected = SelectedNodes.ToList();
@@ -93,6 +121,31 @@ namespace Nodify.Playground
             {
                 Nodes.Remove(selected[i]);
             }
+        }
+
+        private bool CanCommentSelection()
+        {
+            return !EditorSettings.Instance.IsReadOnly && SelectedNodes.Count > 0;
+        }
+
+        private void CommentSelection()
+        {
+            Schema.AddCommentAroundNodes(SelectedNodes, "New comment");
+        }
+
+        private void DisconnectConnector(ConnectorViewModel c)
+        {
+            c.Disconnect();
+        }
+
+        private bool CanCreateConnection(object target)
+        {
+            return !EditorSettings.Instance.IsReadOnly && PendingConnection.Source != null && target != null;
+        }
+
+        private void CreateConnection(object target)
+        {
+            Schema.TryAddConnection(PendingConnection.Source!, target);
         }
     }
 }

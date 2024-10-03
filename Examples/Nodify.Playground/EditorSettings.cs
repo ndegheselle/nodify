@@ -20,7 +20,12 @@ namespace Nodify.Playground
         private EditorSettings()
         {
             Settings = new ObservableCollection<ISettingViewModel>()
-            {
+            { 
+                new ProxySettingViewModel<bool>(
+                    () => Instance.IsReadOnly,
+                    val => Instance.IsReadOnly = val,
+                    "Is read only: ",
+                    "Allow only panning and zooming."),
                 new ProxySettingViewModel<bool>(
                     () => Instance.EnableRealtimeSelection,
                     val => Instance.EnableRealtimeSelection = val,
@@ -286,6 +291,13 @@ namespace Nodify.Playground
         {
             get => _allowConnectingToConnectorsOnly;
             set => SetProperty(ref _allowConnectingToConnectorsOnly, value);
+        }
+
+        private bool _isReadOnly = false;
+        public bool IsReadOnly
+        {
+            get => _isReadOnly;
+            set => SetProperty(ref _isReadOnly, value);
         }
 
         private bool _realtimeSelection = true;

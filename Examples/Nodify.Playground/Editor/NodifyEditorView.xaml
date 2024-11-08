@@ -260,6 +260,10 @@
                             <Setter Property="ConnectionTemplate"
                                     Value="{StaticResource StepConnectionTemplate}" />
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding IsPanning, RelativeSource={RelativeSource Self}}"
+                                     Value="True">
+                            <Setter Property="Cursor" Value="{Binding CursorGrabbing.Value, RelativeSource={RelativeSource AncestorType={x:Type local:NodifyEditorView}}}"/>
+                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </nodify:NodifyEditor.Style>

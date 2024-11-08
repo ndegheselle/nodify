@@ -1,4 +1,6 @@
-﻿using System.Windows.Input;
+﻿using System.Windows.Controls.Primitives;
+using System;
+using System.Windows.Input;
 
 namespace Nodify
 {
@@ -112,6 +114,8 @@ namespace Nodify
                 Selection = new SelectionGestures();
                 Cutting = new MouseGesture(MouseAction.LeftClick, ModifierKeys.Alt | ModifierKeys.Shift);
                 Pan = new AnyGesture(new MouseGesture(MouseAction.RightClick), new MouseGesture(MouseAction.MiddleClick));
+                PanVertical = MultiGesture.None;
+                PanHorizontal = MultiGesture.None;
                 ZoomModifierKey = ModifierKeys.None;
                 ZoomIn = new MultiGesture(MultiGesture.Match.Any, new KeyGesture(Key.OemPlus, ModifierKeys.Control), new KeyGesture(Key.Add, ModifierKeys.Control));
                 ZoomOut = new MultiGesture(MultiGesture.Match.Any, new KeyGesture(Key.OemMinus, ModifierKeys.Control), new KeyGesture(Key.Subtract, ModifierKeys.Control));
@@ -129,6 +133,9 @@ namespace Nodify
             /// <summary>Gesture used to start panning.</summary>
             /// <remarks>Defaults to <see cref="MouseAction.RightClick"/> or <see cref="MouseAction.MiddleClick"/>.</remarks>
             public InputGestureRef Pan { get; }
+            // XXX : group in one PanGestures class ?
+            public InputGestureRef PanVertical { get; }
+            public InputGestureRef PanHorizontal { get; }
 
             /// <summary>The key modifier required to start zooming by mouse wheel.</summary>
             /// <remarks>Defaults to <see cref="ModifierKeys.None"/>.</remarks>
@@ -161,6 +168,8 @@ namespace Nodify
                 Selection.Apply(gestures.Selection);
                 Cutting.Value = gestures.Cutting.Value;
                 Pan.Value = gestures.Pan.Value;
+                PanVertical.Value = gestures.PanVertical.Value;
+                PanHorizontal.Value = gestures.PanHorizontal.Value;
                 ZoomModifierKey = gestures.ZoomModifierKey;
                 ZoomIn.Value = gestures.ZoomIn.Value;
                 ZoomOut.Value = gestures.ZoomOut.Value;

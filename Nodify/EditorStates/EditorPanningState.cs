@@ -67,4 +67,55 @@ namespace Nodify
             }
         }
     }
+
+    public class EditorVerticalPanningState : EditorState
+    {
+        private readonly float _delta;
+        private readonly float _speed = 0.5f;
+        /// <summary>Constructs an instance of the <see cref="EditorPanningState"/> state.</summary>
+        /// <param name="editor">The owner of the state.</param>
+        public EditorVerticalPanningState(NodifyEditor editor, float delta) : base(editor)
+        {
+            _delta = delta;
+        }
+
+        /// <inheritdoc />
+        public override void Exit()
+            => Editor.IsPanning = false;
+
+        /// <inheritdoc />
+        public override void Enter(EditorState? from)
+        {
+            Editor.IsPanning = true;
+            Editor.ViewportLocation = new Point(Editor.ViewportLocation.X, Editor.ViewportLocation.Y + (_speed * -_delta) / Editor.ViewportZoom);
+            PopState();
+        }
+
+        // XXX : Could also handle key down / up to allow arrow key panning (using a DispatcherTimer ?)
+        // XXX : Would require to add a direction information to the gesture to know in which direction the input is going (similar to wheel delta)
+    }
+
+    public class EditorHorizontalPanningState : EditorState
+    {
+        private readonly float _delta;
+        private readonly float _speed = 0.5f;
+        /// <summary>Constructs an instance of the <see cref="EditorPanningState"/> state.</summary>
+        /// <param name="editor">The owner of the state.</param>
+        public EditorHorizontalPanningState(NodifyEditor editor, float delta) : base(editor)
+        {
+            _delta = delta;
+        }
+
+        /// <inheritdoc />
+        public override void Exit()
+            => Editor.IsPanning = false;
+
+        /// <inheritdoc />
+        public override void Enter(EditorState? from)
+        {
+            Editor.IsPanning = true;
+            Editor.ViewportLocation = new Point(Editor.ViewportLocation.X + (_speed * -_delta) / Editor.ViewportZoom, Editor.ViewportLocation.Y);
+            PopState();
+        }
+    }
 }

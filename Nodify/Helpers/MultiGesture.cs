@@ -1,7 +1,32 @@
-﻿using System.Windows.Input;
+﻿using System.Linq;
+using System.Windows;
+using System.Windows.Input;
 
 namespace Nodify
 {
+    public class MultiInputEventArgs : InputEventArgs
+    {
+        public InputEventArgs[] Events { get; private set; }
+        public MultiInputEventArgs(params InputEventArgs[] events)
+            : base(events[0].Device, events[0].Timestamp)
+        {
+            Events = events;
+        }
+    }
+
+    public class MouseWheelGesture : InputGesture
+    {
+        public ModifierKeys Modifiers { get; set; }
+
+        public MouseWheelGesture() { }
+        public MouseWheelGesture(ModifierKeys modifiers) => Modifiers = modifiers;
+
+        public override bool Matches(object targetElement, InputEventArgs inputEventArgs)
+        {
+            return inputEventArgs is MouseWheelEventArgs && Keyboard.Modifiers.HasFlag(Modifiers);
+        }
+    }
+
     /// <summary>Combines multiple input gestures.</summary>
     public class MultiGesture : InputGesture
     {
@@ -10,9 +35,9 @@ namespace Nodify
         /// <summary>The strategy used by <see cref="Matches(object, InputEventArgs)"/>.</summary>
         public enum Match
         {
-            /// <summary>At least one gesture must match.</summary>
+            /// <summary>At least one gesture must _match.</summary>
             Any,
-            /// <summary>All gestures must match.</summary>
+            /// <summary>All gestures must _match.</summary>
             All
         }
 
@@ -43,12 +68,11 @@ namespace Nodify
         {
             for (int i = 0; i < _gestures.Length; i++)
             {
-                if (!_gestures[i].Matches(targetElement, inputEventArgs))
+                if (!Matches(_gestures[i], targetElement, inputEventArgs))
                 {
                     return false;
                 }
             }
-
             return true;
         }
 
@@ -56,13 +80,19 @@ namespace Nodify
         {
             for (int i = 0; i < _gestures.Length; i++)
             {
-                if (_gestures[i].Matches(targetElement, inputEventArgs))
+                if (Matches(_gestures[i], targetElement, inputEventArgs))
                 {
                     return true;
                 }
             }
-
             return false;
+        }
+
+        private bool Matches(InputGesture gesture, object targetElement, InputEventArgs inputEventArgs)
+        {
+            if (inputEventArgs is MultiInputEventArgs multiEvents && !(gesture is MultiGesture))
+                return multiEvents.Events.Any(e => gesture.Matches(targetElement, e));
+            return gesture.Matches(targetElement, inputEventArgs);
         }
     }
 
@@ -99,6 +129,9 @@ namespace Nodify
         }
 
         public static implicit operator InputGestureRef(MouseGesture gesture)
+            => new InputGestureRef { Value = gesture };
+
+        public static implicit operator InputGestureRef(MouseWheelGesture gesture)
             => new InputGestureRef { Value = gesture };
 
         public static implicit operator InputGestureRef(KeyGesture gesture)

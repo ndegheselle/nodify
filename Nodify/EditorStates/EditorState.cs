@@ -15,11 +15,18 @@ namespace Nodify
         /// <summary>The owner of the state.</summary>
         protected NodifyEditor Editor { get; }
 
+        protected MouseEventArgs? CurrentMouseEvent { get; private set; }
+        protected KeyEventArgs? CurrentKeyEvent { get; private set; }
+
         /// <inheritdoc cref="NodifyEditor.OnMouseDown(MouseButtonEventArgs)"/>
-        public virtual void HandleMouseDown(MouseButtonEventArgs e) { }
+        public virtual void HandleMouseDown(MouseButtonEventArgs e) {
+            CurrentMouseEvent = e;
+        }
 
         /// <inheritdoc cref="NodifyEditor.OnMouseUp(MouseButtonEventArgs)"/>
-        public virtual void HandleMouseUp(MouseButtonEventArgs e) { }
+        public virtual void HandleMouseUp(MouseButtonEventArgs e) {
+            CurrentMouseEvent = null;
+        }
 
         /// <inheritdoc cref="NodifyEditor.OnMouseMove(MouseEventArgs)"/>
         public virtual void HandleMouseMove(MouseEventArgs e) { }
@@ -32,10 +39,14 @@ namespace Nodify
         public virtual void HandleAutoPanning(MouseEventArgs e) { }
 
         /// <inheritdoc cref="NodifyEditor.OnKeyUp(KeyEventArgs)"/>
-        public virtual void HandleKeyUp(KeyEventArgs e) { }
+        public virtual void HandleKeyUp(KeyEventArgs e) {
+            CurrentKeyEvent = null;
+        }
 
         /// <inheritdoc cref="NodifyEditor.OnKeyDown(KeyEventArgs)"/>
-        public virtual void HandleKeyDown(KeyEventArgs e) { }
+        public virtual void HandleKeyDown(KeyEventArgs e) {
+            CurrentKeyEvent = e;
+        }
 
         /// <summary>Called when <see cref="NodifyEditor.PushState(EditorState)"/> is called.</summary>
         /// <param name="from">The state we enter from (is null for root state).</param>

@@ -10,8 +10,16 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\Cursors\grab.cur" />
+    <None Remove="Resources\Cursors\grabbing.cur" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Nodify\Nodify.csproj" />
     <ProjectReference Include="..\Nodify.Shared\Nodify.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Cursors\grab.cur" />
+    <Resource Include="Resources\Cursors\grabbing.cur" />
   </ItemGroup>
 
 </Project>

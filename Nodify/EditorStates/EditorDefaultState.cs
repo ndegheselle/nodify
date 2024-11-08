@@ -31,19 +31,37 @@ namespace Nodify
         public override void HandleMouseDown(MouseButtonEventArgs e)
         {
             EditorGestures.NodifyEditorGestures gestures = EditorGestures.Mappings.Editor;
-            if (gestures.Cutting.Matches(e.Source, e))
+            InputEventArgs mouseEvent = e;
+            // Allow mix event with keyboard and mouse inputs
+            if (CurrentKeyEvent != null)
+                mouseEvent = new MultiInputEventArgs(e, CurrentKeyEvent);
+
+            if (gestures.Cutting.Matches(e.Source, mouseEvent))
             {
                 PushState(new EditorCuttingState(Editor));
             }
-            else if (gestures.Selection.Select.Matches(e.Source, e))
+            else if (!Editor.DisablePanning && gestures.Pan.Matches(e.Source, mouseEvent))
+            {
+                PushState(new EditorPanningState(Editor));
+            }
+            else if (gestures.Selection.Select.Matches(e.Source, mouseEvent))
             {
                 SelectionType selectionType = GetSelectionType(e);
                 var selecting = new EditorSelectingState(Editor, selectionType);
                 PushState(selecting);
             }
-            else if (!Editor.DisablePanning && gestures.Pan.Matches(e.Source, e))
+        }
+
+        public override void HandleMouseWheel(MouseWheelEventArgs e)
+        {
+            EditorGestures.NodifyEditorGestures gestures = EditorGestures.Mappings.Editor;
+            if (!Editor.DisablePanning && gestures.PanHorizontal.Matches(e.Source, e))
             {
-                PushState(new EditorPanningState(Editor));
+                PushState(new EditorHorizontalPanningState(Editor, e.Delta));
+            }
+            else if (!Editor.DisablePanning && gestures.PanVertical.Matches(e.Source, e))
+            {
+                PushState(new EditorVerticalPanningState(Editor, e.Delta));
             }
         }
 

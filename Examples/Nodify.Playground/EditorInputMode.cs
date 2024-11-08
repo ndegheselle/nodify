@@ -13,7 +13,8 @@ namespace Nodify.Playground
     public enum EditorGesturesMappings
     {
         Default,
-        Custom
+        Custom,
+        Scroll
     }
 
     public static class EditorInputModeExtensions
@@ -61,6 +62,7 @@ namespace Nodify.Playground
             return mappings switch
             {
                 EditorGesturesMappings.Custom => new CustomGesturesMappings(),
+                EditorGesturesMappings.Scroll => new ScrollGesturesMappings(),
                 _ => new EditorGestures()
             };
         }
@@ -76,6 +78,20 @@ namespace Nodify.Playground
             // comment to drag with right click - we copy the default gestures of the item container which uses left click for selection
             ItemContainer.Drag.Value = new AnyGesture(ItemContainer.Selection.Replace.Value, ItemContainer.Selection.Remove.Value, ItemContainer.Selection.Append.Value, ItemContainer.Selection.Invert.Value);
             ItemContainer.Selection.Apply(Editor.Selection);
+        }
+    }
+
+    public class ScrollGesturesMappings : EditorGestures
+    {
+        public ScrollGesturesMappings()
+        {
+            Editor.Pan.Value = new AnyGesture(
+                new AllGestures(new MouseGesture(MouseAction.LeftClick), new KeyGesture(Key.Space)),
+                new MouseGesture(MouseAction.RightClick), new MouseGesture(MouseAction.MiddleClick)
+                );
+            Editor.PanVertical.Value = new MouseWheelGesture();
+            Editor.PanHorizontal.Value = new MouseWheelGesture(ModifierKeys.Shift);
+            Editor.ZoomModifierKey = ModifierKeys.Control;
         }
     }
 }
